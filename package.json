@@ -1,0 +1,22 @@
+{
+  "name": "js-schema",
+  "version": "0.0.1",
+  "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run tests/index"
+  },
+  "keywords": [
+    "ES6",
+    "Schema",
+    "Schema",
+    "js-schema",
+    "schema-js",
+    "mongoose"
+  ],
+  "author": "Austin N. Hunt",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^3.5.0"
+  }
+}

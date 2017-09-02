@@ -1,0 +1,236 @@
+# Schema-JS
+
+## Introduction
+
+This project is spawned out of a desire for pure javascript libraries that save time in long term projects. The basic concept behind this library is to take a "logically described schema" and transform it into an es6 class you can play with like any other es6 class you love. `Love ES6 More!`
+
+So...take my schema:
+```javascript
+const llamaSchema = {
+  name: String,
+  dob: Date,
+  age: Number
+}
+```
+
+And use powerful llama powers to create this class with baked-in validation:
+```javascript
+class Llama {
+  name: String;
+  dob: Date;
+  age: Number;
+  constructor({ name, dob, age }) {
+    this.name = name;
+    this.dob = dob;
+    this.age = age;
+  }
+  set name(value) {
+    if(value.constructor !== String) {
+      throw TypeError('Invalid name provided.');
+    }
+    this.name = value;
+  }
+  set dob(value) {
+    if(value.constructor !== String || value.constructor !== Date) {
+      throw TypeError('You must provide a valid date value.');
+    }
+    if(value.constructor === String) { value = new Date(value); }
+
+    return value;
+  }
+  set age(value) {
+    if(value.constructor !== String || value.constructor !== Number) {
+      throw TypeError('You must provide a valid number');
+    }
+    if(value.constructor === String) { value = new Number(value); }
+    return value;
+  }
+}
+```
+---
+## Rational
+
+#### WHY DO THIS!?
+Good question. Because we can. No, just kidding: because I had a difficult time finding a library that treats schemas like classes. Commonly other libraries manage their schema methods and statics like this:
+
+```javascript
+const Llama = new Schema({
+  name: String,
+  dob: Date,
+  age: Number
+})
+
+Llama.methods.eatGrass = function () {
+  /**Implement eating grass?**/
+}
+Llama.statics.birthLlama() = function () {
+  /** Implement static method to create a new lama. **/
+}
+```
+
+This is OK, I guess; but I want the clean feeling of ES6 classes with my method declarations:
+
+```javascript
+
+class Llama extends Schema({
+  name: String,
+  dob: Date,
+  age: Number
+})(/** we can pass in other settings here.**/) {
+  eatGrass() {
+    return `Llama ${this.name} ate some grass.`;
+  }
+  static birthLlama(name) {
+    return new Lama({
+      name,
+      dob: Date.now(),
+      age: 0
+    });
+  }
+}
+
+```
+
+
+Essentially, the backbone of this project is a single factory function. The implementation of this class creator (Class Factory) function is as follows (Simplified):
+
+```javascript
+export const convertSchemaToClass = schema => {
+  return (ParentClass) => {
+    if(ParentClass && ParentClass.constructor !== Function) { throw TypeError('You can only schemify classes.'); }
+
+    const primitives = [ String, Date, Number, Symbol ];
+    const classer = ParentClass ? (
+      class extends ParentClass { constructor(props) { super(props); } }      
+    ) : (
+      class { constructor(props) { super(props); } }
+    );
+
+    const keys = Object.keys(schema);
+    /** Do some magic to turn schema into class accessor methods. **/
+    for(const key of keys) {
+      const keySymbol = Symbol(key);
+      Object.defineProperty(classer.prototype, key, {
+        enumerable: true,
+        configurable: false,
+        set: function(value) {
+          const Primitive = primitives.find(Primitive => schema[key] === Primitive);
+          if(Primitive) {
+            value = new Primitive(value);
+          }
+          if(!(value.constructor === schema[key])) {
+            throw new TypeError(`You cannot set ${key} value to type ${value.constructor.name}. Use ${schema[key].name}`);
+          }
+          this[keySymbol] = value;
+        },
+        get: function() { return this[keySymbol] }
+      });
+    }
+
+    return classer;
+  }
+}
+```
+
+## Usage
+You don't really need to know how it works for you to use it:
+
+#### Simple Example
+```javascript
+import Schema from 'schema-js';
+
+const Llama = Schema({
+  name: String,
+  dob: Date,
+  age: Number
+})();
+
+class FunnyLlama extends Llama { //Class that becomes a subclass of llama schema.
+  constructor(props) {
+    super(props); //Do annoying magic.
+  }
+  getNextAge() {
+    return this.age + 1;
+  }
+}
+```
+
+#### Embedded Schemas Example
+
+```javascript
+import Schema from 'schema-js';
+
+class Llama extends Schema({
+  name: String,
+  dob: Date,
+  age: Number,
+  panchos: [ { price: Number } ]
+})() {
+  constructor(props) {
+    super(props);
+  }
+  sumPanchos() {
+    return panchos.reduce((a, b) => a.price + b.price, 0);
+  }
+}
+
+```
+
+#### Embedded ES6 Class Example:
+This is really where the rubber hits the road with this idea. This schema would intuitively allow you to pass class definitions as "Types" for your property definitions.
+
+So, let's say I want to create a String validator called EmailAddress?
+
+```javascript
+import Schema from 'schema-js';
+
+const SimpleEmailAddress = function(value) {
+  //Throw an error if the email address is invalid.
+  return String(value);
+}
+
+//We can even be smart and do settings with a factory
+const EmailAddress = ({ minLength, maxLength, allowedServers}) => {
+  return function(value) {
+    //Do validation logic...
+    return new String(value)
+  }
+}
+
+class Llama extends Schema({
+  name: String,
+  dob: Date,
+  age: Number,
+  panchos: [ { price: Number } ],
+  email: EmailAddress({ minLength: 10, maxLength: 100, allowedServers: ['gmail' ] })
+})() {
+  constructor(props) {
+    super(props);
+  }
+  sumPanchos() {
+    return panchos.reduce((a, b) => a.price + b.price, 0);
+  }
+}
+
+
+```
+
+## Validator Helper Library
+
+```javascript
+import Schema, { Validators } from 'schema-js';
+```
+1. `Enum([ String ])`
+2. `Number(settings: { min: Number, max: Number, type: ['int', 'double'] })`
+3. `String(settings: { min: Number, max: Number, match: RegExp })`
+
+## Custom Error Handling
+Before using the schema code anywhere, use this to override the error classes.
+```javascript
+import Schema from 'schema-js';
+
+//Override Schema ErrorHandling
+Schema.Error = MyErrorClass;
+Schema.TypeError = MyTypeErrorClass;
+Schema.ValidationError = MyValidationErrorClass;
+```
