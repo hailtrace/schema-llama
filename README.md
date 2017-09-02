@@ -1,4 +1,10 @@
 # Schema-JS
+## TOC
+
+1. [Preamble](#preamble)
+2. [Introduction](#introduction)
+3. [Rational](#rational)
+4. [Usage](#usage)
 
 ## Preamble
 We have not written this project yet. It's currently in its conception and is going down the experimental development mode. Star the repo and see when we get it done.
