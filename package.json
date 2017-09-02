@@ -1,5 +1,5 @@
 {
-  "name": "js-schema",
+  "name": "schema.js",
   "version": "0.0.1",
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
   "main": "index.js",
