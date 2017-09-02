@@ -4,7 +4,7 @@
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
   "main": "index.js",
   "scripts": {
-    "test": "npm run tests/index"
+    "test": "mocha tests/*"
   },
   "keywords": [
     "ES6",
@@ -17,6 +17,11 @@
   "author": "Austin N. Hunt",
   "license": "ISC",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-register": "^6.26.0",
     "mocha": "^3.5.0"
-  }
+  },
+  "dependencies": {}
 }
