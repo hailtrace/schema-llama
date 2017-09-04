@@ -28,7 +28,6 @@ describe('SchemaJS Tests', () => {
         dob: new Date(),
         age: 13
       });
-
       assert(llama.name === 'ABC', 'Llama should have the name ABC');
       assert(llama.name.constructor === String, 'Llama name should be a string');
       assert(llama.dob.constructor === Date, 'Llama birthday should be a date');
@@ -116,6 +115,7 @@ describe('SchemaJS Tests', () => {
       ];
 
       llama.books = books;
+
       assert(llama.books.length == 2, 'There should be 2 books');
       llama.books.forEach(book => assert(book.constructor === Book, 'Books must be book instances'));
       assert(llama.books[0].title == 'Test Title', 'Books must accurately store data');

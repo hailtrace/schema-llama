@@ -1,11 +1,55 @@
 import { TypeError, ValidationError, Error } from './errors';
 
+const arrayToJSON = array => {
+
+  if(array.constructor === Array) {
+    return array.map()
+  }
+  return array;
+}
+
+const toJSONHelper = item => {
+  if(item instanceof Array) {
+    return item.map(toJSONHelper);
+  }
+  if(typeof item === 'object' && item.toJSON) {
+    return item.toJSON();
+  }
+  return item;
+}
+
 const constructorHelper = function(props, ...args) {
   if(!props || props.constructor !== Object) { return; }
   const propKeys = Object.keys(props);
   for(const key of propKeys) {
     this[key] = props[key];
   }
+  const toJSON = (function () {
+    const object = {};
+    for(const key of propKeys) {
+      if(this[key].toJSON === Function) {
+        object[key] = this[key].toJSON();
+      } else if(this[key].constructor === Array) {
+        object[key] = this[key].map(toJSONHelper);
+      }
+      else {
+        object[key] = this[key];
+      }
+    }
+    return object;
+  }).bind(this);
+
+  Object.defineProperty(this, 'valueOf', {
+    enumerable: false,
+    configurable: false,
+    value: toJSON
+  });
+
+  Object.defineProperty(this, 'toJSON', {
+    enumerable: false,
+    configurable: false,
+    value: toJSON
+  });
 }
 
 const validateOptions = (options) => {
@@ -168,6 +212,7 @@ const classFactory = function(schema) {
             if(options.set) {
               value = options.set(value, schema[key], key, schema);
             }
+
             this[keySymbol] = value;
           },
           get: function() {
