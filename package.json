@@ -1,6 +1,6 @@
 {
   "name": "schema-llama",
-  "version": "0.0.3-1",
+  "version": "0.0.3-2",
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
   "main": "index.js",
   "scripts": {
