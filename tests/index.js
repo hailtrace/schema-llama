@@ -5,7 +5,7 @@ const { default: Schema, Validators } = SchemaLibrary;
 
 describe('SchemaJS Tests', () => {
   describe('Factory', () => {
-    it('Should support simple schema validation.', () => {
+    it('should support simple schema validation', () => {
       const Llama = Schema({
         name: String,
         dob: Date,
@@ -29,13 +29,13 @@ describe('SchemaJS Tests', () => {
         age: 13
       });
 
-      assert(llama.name === 'ABC', 'Llama should have the name ABC.');
-      assert(llama.name.constructor === String, 'Llama name should be a string.');
-      assert(llama.dob.constructor === Date, 'Llama birthday should be a date.');
-      assert(llama.age == 13, 'Llama age should be 13.');
+      assert(llama.name === 'ABC', 'Llama should have the name ABC');
+      assert(llama.name.constructor === String, 'Llama name should be a string');
+      assert(llama.dob.constructor === Date, 'Llama birthday should be a date');
+      assert(llama.age == 13, 'Llama age should be 13');
     });
 
-    it('Should support embedded schema validation.', () => {
+    it('should support embedded schema validation', () => {
       class Llama extends Schema({
         name: String,
         dob: Date,
@@ -61,30 +61,30 @@ describe('SchemaJS Tests', () => {
         ]
       });
       const { books } = bookLlama;
-      assert(books.constructor === Array, 'Books should be an array.');
-      assert(books[0].author.constructor === String, 'Book authors should be strings.');
-      assert(books.length == 2, 'There should be two books.');
+      assert(books.constructor === Array, 'Books should be an array');
+      assert(books[0].author.constructor === String, 'Book authors should be strings');
+      assert(books.length == 2, 'There should be two books');
 
       assert.throws(() => {
         const badLlama = new Llama({
           books : [ 'Happy Llama!' ]
         });
-      }, 'Bad llamas should not be accepted.');
+      }, 'Bad llamas should not be accepted');
 
       assert.throws(() => {
         const evilLlama = new Llama({
           books: [[[[]]]]
         });
-      }, 'Evil llamas should not be accepted.');
+      }, 'Evil llamas should not be accepted');
 
       assert.throws(() => {
         const stupidLlama = new Llama({
           books : 'Test'
         })
-      }, 'Stupid llamas should not be accepted.');
+      }, 'Stupid llamas should not be accepted');
     });
 
-    it('Should support embedded es6 class validation.', () => {
+    it('should support embedded es6 class validation', () => {
       class Book extends Schema({
         title: String,
         author: String
@@ -116,13 +116,13 @@ describe('SchemaJS Tests', () => {
       ];
 
       llama.books = books;
-      assert(llama.books.length == 2, 'There should be 2 books.');
-      llama.books.forEach(book => assert(book.constructor === Book, 'Books must be book instances.'));
-      assert(llama.books[0].title == 'Test Title', 'Books must accurately store data.');
+      assert(llama.books.length == 2, 'There should be 2 books');
+      llama.books.forEach(book => assert(book.constructor === Book, 'Books must be book instances'));
+      assert(llama.books[0].title == 'Test Title', 'Books must accurately store data');
 
       assert.throws(() => {
         llama.books[0].title = 1;
-      }, 'Child objects should have validation.');
+      }, 'Child objects should have validation');
 
       assert.throws(() => {
         try {
@@ -133,7 +133,7 @@ describe('SchemaJS Tests', () => {
         } catch(ex) {
           throw ex;
         }
-      }, 'Books should be schema validated.');
+      }, 'Books should be schema validated');
 
       class LooseLlama extends Schema({
         name: String,
@@ -155,33 +155,59 @@ describe('SchemaJS Tests', () => {
       ];
 
       looseLlama.books = looseLlamaBooks;
-      assert(looseLlama.books[0].constructor === Book, 'Books should be casted automagically.');
-      assert(looseLlama.getBooks().constructor === Array, 'Books should be an array of Books.');
+      assert(looseLlama.books[0].constructor === Book, 'Books should be casted automagically');
+      assert(looseLlama.getBooks().constructor === Array, 'Books should be an array of Books');
 
       assert.throws(() => {
         const badBooks = [
           { title: 1 }
         ];
         looseLlama.books = badBooks;
-      }, 'Books should be strictly validated.')
+      }, 'Books should be strictly validated')
     });
 
-    it('Should support embedded validators.', () => {
-      assert(false, 'Not implemented.')
+    it('should support embedded validators', () => {
+      class Llama extends Schema({
+        name: (value) => {
+          if(value.constructor !== String) {
+            throw new TypeError('You must provide a string to name');
+          }
+          if(value.length < 10) {
+            throw new TypeError('Llama names must be bigger than 10 characters');
+          }
+          return value;
+        },
+      })({
+        attemptCast: true
+      }) {
+
+      }
+
+      const llama = new Llama({
+        name: 'Comma Llama'
+      });
+
+      assert.throws(() => {
+        llama.name = 'Too Short';
+      }, 'Invalid names should not work');
+      assert.throws(() => {
+        llama.name = 123; //Invalid type.
+      }, 'Invalid names should not work');
+
     });
   });
 
   describe('Validator Library', () => {
-    it('Should contain a valid Enum validator.', () => {
-      assert(false, 'Not implemented.')
+    it('should contain a valid Enum validator', () => {
+      assert(false, 'Not implemented')
     });
 
-    it('Should contain a valid Number validator.', () => {
-      assert(false, 'Not implemented.')
+    it('should contain a valid Number validator', () => {
+      assert(false, 'Not implemented')
     });
 
-    it('Should contain a valid String validator.', () => {
-      assert(false, 'Not implemented.')
+    it('should contain a valid String validator', () => {
+      assert(false, 'Not implemented')
     });
   })
 

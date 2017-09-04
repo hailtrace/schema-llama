@@ -62,7 +62,10 @@ function primitiveHelper(value, schemaItem, options, key, schema) {
           const NonPrimative = schemaItem;
           value = new NonPrimative(value);
         }
-        if(!Primitive && value.constructor !== schemaItem) {
+        if(!Primitive && !schemaItem.prototype && value.constructor !== schemaItem) {
+          value = schemaItem(value);
+        }
+        if(!Primitive && schemaItem.prototype && value.constructor !== schemaItem) {
           throw error(value, schemaItem, key);
         }
         if(valueIsPrimative && schemaItemIsPrimative && value.constructor !== Primitive) {
