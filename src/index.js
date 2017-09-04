@@ -44,62 +44,76 @@ const validateOptions = (options) => {
   }
 }
 
-function primitiveHelper(value, schemaItem, options, key) {
+const error = (value, schemaItem, key) => TypeError(`You cannot set ${key}<${schemaItem.name}> to ${value.constructor.name}. Use ${schemaItem.name} instead.`)
+
+function primitiveHelper(value, schemaItem, options, key, schema) {
   const primitives = [ Boolean, String, Date, Number, Symbol ];
   const Primitive = primitives.find(primitive => schemaItem === primitive);
-  switch(schemaItem.constructor) {
-    case Function: {
-      if(!options.attemptCast && schemaItem !== value.constructor) {
-        throw TypeError(`ERROR You cannot set ${key} value type ${value.constructor.name}. Use ${schemaItem.name} instead.`);
-      }
-      if(!Primitive && value.constructor !== schemaItem) {
-        throw TypeError(`You cannot set ${key} value type ${value.constructor.name}. Use ${schemaItem.name} instead.`);
-      }
-      if(Primitive) {
-        value = Primitive(value);
-      }
-      break;
-    }
-    case Array: {
-      if(value.constructor !== Array) {
-        throw new TypeError(`You cannot set ${key} to value type ${value.constructor.name}. Use ${schemaItem.constructor.name} instead.`);
-      }
-      value = value.map(item => primitiveHelper(item, schemaItem[0], options, key));
-      break;
-    }
-    case Object: {
-      if(!options.attemptCast) {
-        return value;
-      }
-      value = new (classFactory(schemaItem)(options))(value);
-      break;
-    }
-    default: {
-      throw TypeError(`Unknown schemaItem constructor: ${schemaItem.constructor}`);
-    }
-  }
+  const schemaItemIsPrimative = Primitive ? true: false;
+  const valueIsPrimative = primitives.find(primitive => value.constructor === primitive) ? true : false;
 
-  return value;
+  try {
+    switch(schemaItem.constructor) {
+      case Function: {
+        if(!options.attemptCast && schemaItem !== value.constructor) {
+          throw error(value, schemaItem, key);
+        }
+        if(options.attemptCast && !valueIsPrimative && !schemaItemIsPrimative && value.constructor !== schemaItem) {
+          const NonPrimative = schemaItem;
+          value = new NonPrimative(value);
+        }
+        if(!Primitive && value.constructor !== schemaItem) {
+          throw error(value, schemaItem, key);
+        }
+        if(valueIsPrimative && schemaItemIsPrimative && value.constructor !== Primitive) {
+          value = Primitive(value);
+        }
+        break;
+      }
+      case Array: {
+        if(value.constructor !== Array) {
+          throw error(value, schemaItem, key);
+        }
+        value = value.map(item => primitiveHelper(item, schemaItem[0], options, key));
+        break;
+      }
+      case Object: {
+        if(!options.attemptCast && value.constructor !== Object) {
+          throw error(value, schemaItem, key);
+        }
+        value = new (classFactory(schemaItem)(options))(value);
+        break;
+      }
+      default: {
+        throw error(value, schemaItem, key);
+      }
+    }
+
+    return value;
+  } catch( ex ) {
+    ex.message = `${key ? `${key}<${schemaItem ? schemaItem.name ? schemaItem.name : schemaItem.constructor ? schemaItem.constructor.name : '' : ''}>` : ''}:::${ex.message}`;
+    throw ex;
+  }
 }
 
-function arrayConstructorHelper(value, schemaItem, options, key) {
+function arrayConstructorHelper(value, schemaItem, options, key, schema) {
   if(value.constructor !== Array) {
     throw TypeError(`You cannot set ${key} value type ${value.constructor.name}. Use an Array instead.`);
   }
-  if(schemaItem.constructor === Function) { return primitiveHelper(value, schemaItem, options, key) };
+  if(schemaItem.constructor === Function) { return primitiveHelper(value, schemaItem, options, key, schema) };
   const [ SchemaClass ] = schemaItem;
   /** Only deal with pure schemas here; deal with embedded schemas later. **/
 
   switch(SchemaClass.constructor) {
     case Function: {
-      return primitiveHelper(value, SchemaClass, options, key);
+      return primitiveHelper(value, SchemaClass, options, key, schema);
     }
     case Object: {
       return value.map(item => new classFactory(SchemaClass)(options)(item));
       break;
     }
     case Array: {
-      return value.map(item => arrayConstructorHelper(item, SchemaClass[0], options, key));
+      return value.map(item => arrayConstructorHelper(item, SchemaClass[0], options, key, schema));
     }
   }
 
@@ -147,15 +161,15 @@ const classFactory = function(schema) {
           configurable: false,
           set: function(value) {
 
-            value = primitiveHelper(value, schema[key], options, key);
+            value = primitiveHelper(value, schema[key], options, key, schema);
             if(options.set) {
-              value = options.set(value, schema[key], key);
+              value = options.set(value, schema[key], key, schema);
             }
             this[keySymbol] = value;
           },
           get: function() {
             if(options.get) {
-              return options.get(this[keySymbol], schema[key], key);
+              return options.get(this[keySymbol], schema[key], key, schema);
             }
             return this[keySymbol]
           }
