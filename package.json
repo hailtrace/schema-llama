@@ -2,7 +2,7 @@
   "name": "schema-llama",
   "version": "0.0.3-2",
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
-  "main": "index.js",
+  "main": "./src/index.js",
   "scripts": {
     "test": "mocha tests/*"
   },
