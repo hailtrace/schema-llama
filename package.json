@@ -2,8 +2,9 @@
   "name": "schema-llama",
   "version": "0.0.3",
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
-  "main": "./src/index.js",
+  "main": "./dist/index.js",
   "scripts": {
+    "prepare": "babel ./src -d ./dist",
     "test": "mocha tests/*"
   },
   "keywords": [
