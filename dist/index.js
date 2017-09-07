@@ -35,9 +35,19 @@ const constructorHelper = function (props, ...args) {
   const toJSON = function () {
     const object = {};
     for (const key of propKeys) {
+
+      if (this[key] == null) {
+        object[key] = null;
+        continue;
+      }
+
+      if (this[key] == undefined) {
+        continue;
+      }
+
       if (this[key].toJSON === Function) {
         object[key] = this[key].toJSON();
-      } else if (this[key].constructor === Array) {
+      } else if (this[key] && this[key].constructor === Array) {
         object[key] = this[key].map(toJSONHelper);
       } else {
         object[key] = this[key];

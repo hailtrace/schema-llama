@@ -101,6 +101,10 @@ const validateOptions = (options) => {
 const error = (value, schemaItem, key) => TypeError(`You cannot set ${key}<${schemaItem.name}> to ${value.constructor.name}. Use ${schemaItem.name} instead.`)
 
 function primitiveHelper(value, schemaItem, options, key, schema) {
+  if(value == null || value == undefined) {
+    return value;
+  }
+
   const primitives = [ Boolean, String, Date, Number, Symbol ];
   const Primitive = primitives.find(primitive => schemaItem === primitive);
   const schemaItemIsPrimative = Primitive ? true: false;
