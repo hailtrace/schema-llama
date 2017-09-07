@@ -52,15 +52,15 @@ const constructorHelper = function(props, ...args) {
     return object;
   }).bind(this);
 
-  // Object.defineProperty(this, 'valueOf', {
-  //   enumerable: false,
-  //   configurable: false,
-  //   value: toJSON
-  // });
+  Object.defineProperty(this, 'valueOf', {
+    enumerable: false,
+    configurable: true,
+    value: toJSON
+  });
 
   Object.defineProperty(this, 'toJSON', {
     enumerable: false,
-    configurable: false,
+    configurable: true,
     value: toJSON
   });
 }
@@ -135,7 +135,7 @@ function primitiveHelper(value, schemaItem, options, key, schema) {
           value = new NonPrimative(value);
         }
         if(!Primitive && !schemaItem.prototype && value.constructor !== schemaItem) {
-          value = schemaItem(value);
+          value = schemaItem(value, key);
         }
         if(!Primitive && schemaItem.prototype && value.constructor !== schemaItem) {
           throw error(value, schemaItem, key);

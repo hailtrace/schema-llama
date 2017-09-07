@@ -59,11 +59,11 @@ const constructorHelper = function (props, ...args) {
     return object;
   }.bind(this);
 
-  Object.defineProperty(this, 'valueOf', {
-    enumerable: false,
-    configurable: false,
-    value: toJSON
-  });
+  // Object.defineProperty(this, 'valueOf', {
+  //   enumerable: false,
+  //   configurable: false,
+  //   value: toJSON
+  // });
 
   Object.defineProperty(this, 'toJSON', {
     enumerable: false,
