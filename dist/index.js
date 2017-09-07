@@ -32,6 +32,9 @@ const constructorHelper = function (props, ...args) {
   for (const key of propKeys) {
     this[key] = props[key];
   }
+
+  //TODO: implement check for required fields.
+
   const toJSON = function () {
     const object = {};
     for (const key of propKeys) {
@@ -73,6 +76,13 @@ const validateOptions = options => {
   const keys = Object.keys(options);
   for (const key of keys) {
     switch (key) {
+      case 'required':
+        {
+          if (options[key].constructor !== Array) {
+            throw new _errors.TypeError(`Required field list must be an array of strings or numbers.`);
+          }
+          break;
+        }
       case 'attemptCast':
         {
           if (options[key].constructor !== Boolean) {
@@ -113,6 +123,15 @@ const validateOptions = options => {
 const error = (value, schemaItem, key) => (0, _errors.TypeError)(`You cannot set ${key}<${schemaItem.name}> to ${value.constructor.name}. Use ${schemaItem.name} instead.`);
 
 function primitiveHelper(value, schemaItem, options, key, schema) {
+  if (value == null || value == undefined) {
+    if (options.required) {
+      if (options.required.find(requiredKey => requiredKey == key)) {
+        throw new _errors.TypeError(`If you set ${key}, it cannot be null or undefined. value = ${value}`);
+      }
+    }
+    return value;
+  }
+
   const primitives = [Boolean, String, Date, Number, Symbol];
   const Primitive = primitives.find(primitive => schemaItem === primitive);
   const schemaItemIsPrimative = Primitive ? true : false;
