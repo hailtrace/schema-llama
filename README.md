@@ -1,4 +1,7 @@
-# Schema-JS
+# Schema-Llama
+```
+npm install --save schema-llama@0.0.8
+```
 ## TOC
 
 1. [Preamble](#preamble)
@@ -7,7 +10,9 @@
 4. [Usage](#usage)
 
 ## Preamble
-We have not written this project yet. It's currently in its conception and is going down the experimental development mode. Star the repo and see when we get it done.
+~~We have not written this project yet. It's currently in its conception and is going down the experimental development mode. Star the repo and see when we get it done.~~
+
+**v0.0.8:** We just finished the initial alpha build of this package. It's pushed to NPM, but things could change some more.
 
 Thanks!
 
@@ -146,9 +151,68 @@ export const convertSchemaToClass = schema => {
 ## Usage
 You don't really need to know how it works for you to use it:
 
+### Steps
+1. ***Import the class factory.***
+```javascript
+import Schema from 'schema-llama';
+```
+2. ***Create a schema object.***
+
+Objects contain properties with constructors that define what kind of item can be stored in that property in your class. You can set a schema property to either 1) a class constructor or 2) a validator function.
+
+```javascript
+const schemaObject = {
+  name: String,
+  dob: Date,
+  vehicle: Vehicle, //Imaginary constructor
+  email: EmailValidator //Imaginary validator in the form (value) => { return value; }
+}
+```
+
+3. ***Create the es6 class with options.*** `Schema(schemaObject)(options [, ParentClass ])`
+
+```javascript
+const schemaOptions = {
+  attemptCast: false,
+}
+
+const SchemaClass = Schema(schemaObject)(schemaOptions);
+
+class MyNewClass extends SchemaClass {
+  /** Add methods and such. **/
+}
+
+```
+
+Schema Options:
+ - attemptCast: Boolean - default: false
+ - required: ?Array<String> - Array of property names that are required.
+
+4. (optional) You can put all of this together into one sleek call:
+
+```javascript
+class Parent {
+  /** Parent class methods and props. **/
+}
+
+class Child extends Schema({
+  name: String,
+  dob: Date,
+  vehicle: Vehicle, //Imaginary constructor
+  email: EmailValidator //Imaginary validator in the form (value) => { return value; }
+})({
+  attemptCast: false
+}, Parent) {
+  /** Add class methods and such. **/
+}
+
+```
+
+### Examples
+
 #### Simple Example
 ```javascript
-import Schema from 'schema-js';
+import Schema from 'schema-llama';
 
 const Llama = Schema({
   name: String,
@@ -169,7 +233,7 @@ class FunnyLlama extends Llama { //Class that becomes a subclass of llama schema
 #### Embedded Schemas Example
 
 ```javascript
-import Schema from 'schema-js';
+import Schema from 'schema-llama';
 
 class Llama extends Schema({
   name: String,
@@ -229,7 +293,7 @@ class Llama extends Schema({
 So, let's say I want to create a String validator called EmailAddress?
 
 ```javascript
-import Schema from 'schema-js';
+import Schema from 'schema-llama';
 
 const SimpleEmailAddress = function(value) {
   //Throw an error if the email address is invalid.
@@ -265,7 +329,7 @@ class Llama extends Schema({
 ## Validator Helper Library
 
 ```javascript
-import Schema, { Validators } from 'schema-js';
+import Schema, { Validators } from 'schema-llama';
 ```
 1. `Enum([ String ])`
 2. `Number(settings: { min: Number, max: Number, type: ['int', 'double'] })`
@@ -274,7 +338,7 @@ import Schema, { Validators } from 'schema-js';
 ## Custom Error Handling
 Before using the schema code anywhere, use this to override the error classes.
 ```javascript
-import Schema from 'schema-js';
+import Schema from 'schema-llama';
 
 //Override Schema ErrorHandling
 Schema.Error = MyErrorClass;
@@ -304,37 +368,6 @@ class Llama extends Schema({
     }
   }
 }) {
-  constructor(props) {
-    super(props);
-  }
-}
-
-const llamaface = new Llama();
-llamaface.name = 'JerryLlama';
-llamaface.dob = moment('Jan 1, 2017', 'MMM D, YYYY'); //Stores pure JS date.
-llamaface.age = 10;
-
-```
-
-## Hook Library
-
-TBD: We could potentially build out library that helps build get/set hooks.
-
-For a (rough, very rough and incomplete) Example:
-```javascript
-import Schema, { Hooks } from 'schema-js';
-
-const ReduxStore = /** do setup logic ***/;
-
-const { reduxHookFactory } = Hooks;
-
-const reduxHook = reduxHookFactory(ReduxStore);
-
-class Llama extends Schema({
-  name: String,
-  dob: Date,
-  age: Number,
-})(reduxHook) {
   constructor(props) {
     super(props);
   }
