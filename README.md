@@ -8,6 +8,7 @@ npm install --save schema-llama@0.0.8
 2. [Introduction](#introduction)
 3. [Rational](#rational)
 4. [Usage](#usage)
+5. [Api](#api)
 
 ## Preamble
 ~~We have not written this project yet. It's currently in its conception and is going down the experimental development mode. Star the repo and see when we get it done.~~
@@ -379,3 +380,6 @@ llamaface.dob = moment('Jan 1, 2017', 'MMM D, YYYY'); //Stores pure JS date.
 llamaface.age = 10;
 
 ```
+## API
+All object instantiated using schema-llama will have the following methods built in:
+ - `toJSON()`: Returns a pure object minus any schema-llama methods and hidden properties.
