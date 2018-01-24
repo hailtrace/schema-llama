@@ -19,7 +19,7 @@ const toJSONHelper = item => {
 }
 
 const constructorHelper = function(props, ...args) {
-  if(!props || props.constructor !== Object) { return; }
+  if(!props || typeof props != 'object') { return; }
   const propKeys = Object.keys(props);
   for(const key of propKeys) {
     this[key] = props[key];
