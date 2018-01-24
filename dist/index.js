@@ -18,14 +18,14 @@ const toJSONHelper = item => {
   if (item instanceof Array) {
     return item.map(toJSONHelper);
   }
-  if (typeof item === 'object' && item.toJSON) {
+  if (item && typeof item === 'object' && item.toJSON) {
     return item.toJSON();
   }
   return item;
 };
 
 const constructorHelper = function (props, ...args) {
-  if (!props || props.constructor !== Object) {
+  if (!props || typeof props != 'object') {
     return;
   }
   const propKeys = Object.keys(props);
