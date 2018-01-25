@@ -5,7 +5,8 @@
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "babel ./src -d ./dist",
-    "test": "mocha tests/*"
+    "test": "mocha tests/*",
+    "test-debug": "DEBUG_MODE=true node --inspect ./tests/initTests"
   },
   "keywords": [
     "ES6",

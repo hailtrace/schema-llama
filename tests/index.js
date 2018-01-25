@@ -1,7 +1,7 @@
 require('babel-register');
 const assert = require('assert');
 const SchemaLibrary = require('../src');
-const { default: Schema, Validators } = SchemaLibrary;
+const { default: Schema, validator } = SchemaLibrary;
 
 describe('SchemaJS Tests', () => {
   describe('Factory', () => {
@@ -164,11 +164,36 @@ describe('SchemaJS Tests', () => {
         ];
         looseLlama.books = badBooks;
       }, 'Books should be strictly validated')
+
+      class OneBookLLama extends Schema({
+        name: String,
+        book: Book
+      })({ attemptCast: true }) {};
+
+      const obl = new OneBookLLama({ name: 'OneBookLLama', book: { title: 'OBL Title' } });
+
+      assert(obl.book instanceof Book, `obl.book should be casted to instance of 'Book'`);
+
+      class ID {
+        constructor(props) {
+          this.id = props;
+        }
+      }
+
+      class LlamaWithId extends Schema({
+        _id: ID,
+        name: String
+      })({ attemptCast: true }) {};
+
+      const lid = new LlamaWithId({ _id: 'asdfa', name: 'Cool Llama' });
+
+      assert(lid._id instanceof ID, 'lid._id should be instance of ID');
     });
 
     it('should support embedded validators', () => {
+      process.env.DEBUG = true;
       class Llama extends Schema({
-        name: (value) => {
+        name: validator((value) => {
           if(value.constructor !== String) {
             throw new TypeError('You must provide a string to name');
           }
@@ -176,7 +201,7 @@ describe('SchemaJS Tests', () => {
             throw new TypeError('Llama names must be bigger than 10 characters');
           }
           return value;
-        },
+        }),
       })({
         attemptCast: true
       }) {
