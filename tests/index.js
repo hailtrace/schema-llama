@@ -191,7 +191,6 @@ describe('SchemaJS Tests', () => {
     });
 
     it('should support embedded validators', () => {
-      process.env.DEBUG = true;
       class Llama extends Schema({
         name: validator((value) => {
           if(value.constructor !== String) {
