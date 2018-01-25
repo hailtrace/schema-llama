@@ -3,16 +3,9 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.validator = undefined;
 
 var _errors = require('./errors');
-
-const arrayToJSON = array => {
-
-  if (array.constructor === Array) {
-    return array.map();
-  }
-  return array;
-};
 
 const toJSONHelper = item => {
   if (item instanceof Array) {
@@ -136,27 +129,28 @@ function primitiveHelper(value, schemaItem, options, key, schema) {
   const Primitive = primitives.find(primitive => schemaItem === primitive);
   const schemaItemIsPrimative = Primitive ? true : false;
   const valueIsPrimative = primitives.find(primitive => value.constructor === primitive) ? true : false;
+  const schemaItemIsValidator = schemaItem.is_schema_llama_validator;
 
   try {
+    // distinguish between class and validation function``
     switch (schemaItem.constructor) {
       case Function:
         {
-          if (!options.attemptCast && schemaItem !== value.constructor) {
-            throw error(value, schemaItem, key);
-          }
-          if (options.attemptCast && !valueIsPrimative && !schemaItemIsPrimative && value.constructor !== schemaItem) {
-            const NonPrimative = schemaItem;
-            value = new NonPrimative(value);
-          }
-          if (!Primitive && !schemaItem.prototype && value.constructor !== schemaItem) {
+          // DEAL WITH VALIDATION
+          if (schemaItemIsValidator) {
             value = schemaItem(value, key);
-          }
-          if (!Primitive && schemaItem.prototype && value.constructor !== schemaItem) {
+          } else if (!options.attemptCast && schemaItem !== value.constructor) {
             throw error(value, schemaItem, key);
           }
-          if (valueIsPrimative && schemaItemIsPrimative && value.constructor !== Primitive) {
-            value = Primitive(value);
-          }
+          // DEAL WITH INSTANCES
+          else if (options.attemptCast && !schemaItemIsValidator && !schemaItemIsPrimative && value.constructor !== schemaItem) {
+              const NonPrimative = schemaItem;
+              value = new NonPrimative(value);
+            } else if (!Primitive && schemaItem.prototype && value.constructor !== schemaItem) {
+              throw error(value, schemaItem, key);
+            } else if (valueIsPrimative && schemaItemIsPrimative && value.constructor !== Primitive) {
+              value = Primitive(value);
+            }
           break;
         }
       case Array:
@@ -188,37 +182,9 @@ function primitiveHelper(value, schemaItem, options, key, schema) {
   }
 }
 
-function arrayConstructorHelper(value, schemaItem, options, key, schema) {
-  if (value.constructor !== Array) {
-    throw (0, _errors.TypeError)(`You cannot set ${key} value type ${value.constructor.name}. Use an Array instead.`);
-  }
-  if (schemaItem.constructor === Function) {
-    return primitiveHelper(value, schemaItem, options, key, schema);
-  };
-  const [SchemaClass] = schemaItem;
-  /** Only deal with pure schemas here; deal with embedded schemas later. **/
-
-  switch (SchemaClass.constructor) {
-    case Function:
-      {
-        return primitiveHelper(value, SchemaClass, options, key, schema);
-      }
-    case Object:
-      {
-        return value.map(item => new classFactory(SchemaClass)(options)(item));
-        break;
-      }
-    case Array:
-      {
-        return value.map(item => arrayConstructorHelper(item, SchemaClass[0], options, key, schema));
-      }
-  }
-
-  for (const item of value) {
-    if (item.constructor !== SchemaClass) {
-      throw (0, _errors.TypeError)(`Each element of ${key} must match the type ${SchemaClass.name}. You used ${item.constructor.name}`);
-    }
-  }
+function validator(userValidatorFunction) {
+  userValidatorFunction.is_schema_llama_validator = true;
+  return userValidatorFunction;
 }
 
 const classFactory = function (schema) {
@@ -272,4 +238,5 @@ const classFactory = function (schema) {
 
 /***TODO: Do some logic on classFactory so that we can set custom errors. ***/
 
+exports.validator = validator;
 exports.default = classFactory;
