@@ -219,6 +219,42 @@ describe('SchemaJS Tests', () => {
       }, 'Invalid names should not work');
 
     });
+
+    it('should support array of validators', () => {
+      class Book {
+        constructor(props = {}) {
+          this.title = props.title || '';
+          this.author = props.author || '';
+        }
+      };
+
+      const llamaValidator = validator((value) => {
+        if(!value.title || !value.author) {
+          throw new Error(`Book must include a title and an auther`);
+        }
+        return new Book(value);
+      });
+
+      class Llama extends Schema({
+        books: [ llamaValidator ]
+      })({ attemptCast: true }) {};
+
+      const l1_props = {
+        books: [
+          { title: 'Good', author: 'Stuff' }
+        ]
+      };
+      const l1 = new Llama(l1_props);
+      assert(l1.books instanceof Array, `l1.books should be an array`);
+      assert(l1.books[0] instanceof Book, `l1.books[0] should be an instance of 'Book'`);
+
+      assert.throws(() => {
+        const l2_props = {
+          books: [ { title: null, author: 'Teddy' } ]
+        }
+        l2 = new Llama(l2_props);
+      }, 'Should validate that books have a title');
+    });
   });
 
   describe('Validator Library', () => {

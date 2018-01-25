@@ -176,7 +176,7 @@ const classFactory = function(schema) {
   const keys = Object.keys(schema);
 
   return (...args) => {
-    const [ options, ParentClass ] = args.length > 2? (() => {
+    const [ options, ParentClass ] = args.length > 2 ? (() => {
       throw Error('Invalid argument length for Schema(options)([options][,ParentClass])');
     })() : [args[0] || {}, args[1] || undefined];
     if(options && typeof options !== 'object') throw TypeError('You must provivide a valid options object.');
