@@ -1,7 +1,7 @@
 require('babel-register');
 const assert = require('assert');
 const SchemaLibrary = require('../src');
-const { default: Schema, Validators } = SchemaLibrary;
+const { default: Schema, validator } = SchemaLibrary;
 
 describe('SchemaJS Tests', () => {
   describe('Factory', () => {
@@ -164,11 +164,35 @@ describe('SchemaJS Tests', () => {
         ];
         looseLlama.books = badBooks;
       }, 'Books should be strictly validated')
+
+      class OneBookLLama extends Schema({
+        name: String,
+        book: Book
+      })({ attemptCast: true }) {};
+
+      const obl = new OneBookLLama({ name: 'OneBookLLama', book: { title: 'OBL Title' } });
+
+      assert(obl.book instanceof Book, `obl.book should be casted to instance of 'Book'`);
+
+      class ID {
+        constructor(props) {
+          this.id = props;
+        }
+      }
+
+      class LlamaWithId extends Schema({
+        _id: ID,
+        name: String
+      })({ attemptCast: true }) {};
+
+      const lid = new LlamaWithId({ _id: 'asdfa', name: 'Cool Llama' });
+
+      assert(lid._id instanceof ID, 'lid._id should be instance of ID');
     });
 
     it('should support embedded validators', () => {
       class Llama extends Schema({
-        name: (value) => {
+        name: validator((value) => {
           if(value.constructor !== String) {
             throw new TypeError('You must provide a string to name');
           }
@@ -176,7 +200,7 @@ describe('SchemaJS Tests', () => {
             throw new TypeError('Llama names must be bigger than 10 characters');
           }
           return value;
-        },
+        }),
       })({
         attemptCast: true
       }) {
@@ -194,6 +218,42 @@ describe('SchemaJS Tests', () => {
         llama.name = 123; //Invalid type.
       }, 'Invalid names should not work');
 
+    });
+
+    it('should support array of validators', () => {
+      class Book {
+        constructor(props = {}) {
+          this.title = props.title || '';
+          this.author = props.author || '';
+        }
+      };
+
+      const llamaValidator = validator((value) => {
+        if(!value.title || !value.author) {
+          throw new Error(`Book must include a title and an auther`);
+        }
+        return new Book(value);
+      });
+
+      class Llama extends Schema({
+        books: [ llamaValidator ]
+      })({ attemptCast: true }) {};
+
+      const l1_props = {
+        books: [
+          { title: 'Good', author: 'Stuff' }
+        ]
+      };
+      const l1 = new Llama(l1_props);
+      assert(l1.books instanceof Array, `l1.books should be an array`);
+      assert(l1.books[0] instanceof Book, `l1.books[0] should be an instance of 'Book'`);
+
+      assert.throws(() => {
+        const l2_props = {
+          books: [ { title: null, author: 'Teddy' } ]
+        }
+        l2 = new Llama(l2_props);
+      }, 'Should validate that books have a title');
     });
   });
 
