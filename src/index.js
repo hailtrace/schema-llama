@@ -73,6 +73,12 @@ const validateOptions = (options) => {
         }
         break;
       }
+      case 'mapNullToEmptyArray': {
+        if(options[key].constructor !== Boolean) {
+          throw new TypeError(`mapNullToEmptyArray option must be a Boolean.`);
+        }
+        break;
+      }
       case 'strict': {
         if(options[key].constructor !== Boolean) {
           throw new TypeError(`strict option must be a Boolean`);
@@ -102,12 +108,18 @@ const validateOptions = (options) => {
 const error = (value, schemaItem, key) => TypeError(`You cannot set ${key}<${schemaItem.name}> to ${value.constructor.name}. Use ${schemaItem.name} instead.`)
 
 function primitiveHelper(value, schemaItem, options, key, schema) {
-  if(value == null || value == undefined) {
-    if(options.required) {
-      if(options.required.find(requiredKey => requiredKey == key)) {
-        throw new TypeError(`If you set ${key}, it cannot be null or undefined. value = ${value}`);
-      }
+  // HANDLE NULL VALUE
+  if(value == null) {
+    if(options.required && options.required.find(requiredKey => requiredKey == key)) {
+      throw new TypeError(`If you set ${key}, it cannot be null or undefined. value = ${value}`);
     }
+    if(schemaItem instanceof Array && options.mapNullToEmptyArray) {
+      return [];
+    }
+    if(schemaItem.is_schema_llama_validator) {
+      return schemaItem(value, key);
+    }
+
     return value;
   }
 
@@ -207,7 +219,6 @@ const classFactory = function(schema) {
           enumerable: true,
           configurable: false,
           set: function(value) {
-
             value = primitiveHelper(value, schema[key], options, key, schema);
             if(options.set) {
               value = options.set(value, schema[key], key, schema);

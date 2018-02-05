@@ -83,6 +83,13 @@ const validateOptions = options => {
           }
           break;
         }
+      case 'mapNullToEmptyArray':
+        {
+          if (options[key].constructor !== Boolean) {
+            throw new _errors.TypeError(`mapNullToEmptyArray option must be a Boolean.`);
+          }
+          break;
+        }
       case 'strict':
         {
           if (options[key].constructor !== Boolean) {
@@ -116,12 +123,18 @@ const validateOptions = options => {
 const error = (value, schemaItem, key) => (0, _errors.TypeError)(`You cannot set ${key}<${schemaItem.name}> to ${value.constructor.name}. Use ${schemaItem.name} instead.`);
 
 function primitiveHelper(value, schemaItem, options, key, schema) {
-  if (value == null || value == undefined) {
-    if (options.required) {
-      if (options.required.find(requiredKey => requiredKey == key)) {
-        throw new _errors.TypeError(`If you set ${key}, it cannot be null or undefined. value = ${value}`);
-      }
+  // HANDLE NULL VALUE
+  if (value == null) {
+    if (options.required && options.required.find(requiredKey => requiredKey == key)) {
+      throw new _errors.TypeError(`If you set ${key}, it cannot be null or undefined. value = ${value}`);
     }
+    if (schemaItem instanceof Array && options.mapNullToEmptyArray) {
+      return [];
+    }
+    if (schemaItem.is_schema_llama_validator) {
+      return schemaItem(value, key);
+    }
+
     return value;
   }
 
@@ -201,6 +214,7 @@ const classFactory = function (schema) {
     const Class = ParentClass ? class extends ParentClass {
       constructor(...args) {
         super(...args);
+        if (process.env.DEBUG) debugger;
         constructorHelper.call(this, ...args);
       }
     } : class {
@@ -215,7 +229,6 @@ const classFactory = function (schema) {
         enumerable: true,
         configurable: false,
         set: function (value) {
-
           value = primitiveHelper(value, schema[key], options, key, schema);
           if (options.set) {
             value = options.set(value, schema[key], key, schema);

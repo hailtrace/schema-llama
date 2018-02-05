@@ -6,7 +6,8 @@
   "scripts": {
     "prepare": "babel ./src -d ./dist",
     "test": "mocha tests/*",
-    "test-debug": "DEBUG_MODE=true node --inspect ./tests/initTests"
+    "test-debug": "DEBUG_MODE=true node --inspect ./tests/initTests",
+	"watch": "babel ./src -d ./dist -w"
   },
   "keywords": [
     "ES6",
