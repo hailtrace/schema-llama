@@ -214,7 +214,6 @@ const classFactory = function (schema) {
     const Class = ParentClass ? class extends ParentClass {
       constructor(...args) {
         super(...args);
-        if (process.env.DEBUG) debugger;
         constructorHelper.call(this, ...args);
       }
     } : class {
