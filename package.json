@@ -1,13 +1,13 @@
 {
   "name": "schema-llama",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A more purely javascript es6 class generator. Takes the work out of validation, type checking, and more.",
   "main": "./dist/index.js",
   "scripts": {
     "prepare": "babel ./src -d ./dist",
     "test": "mocha tests/*",
     "test-debug": "DEBUG_MODE=true node --inspect ./tests/initTests",
-	"watch": "babel ./src -d ./dist -w"
+    "watch": "babel ./src -d ./dist -w"
   },
   "keywords": [
     "ES6",
