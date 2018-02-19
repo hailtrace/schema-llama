@@ -175,6 +175,7 @@ const schemaObject = {
 ```javascript
 const schemaOptions = {
   attemptCast: false,
+  mapNullToEmptyArray: false
 }
 
 const SchemaClass = Schema(schemaObject)(schemaOptions);
