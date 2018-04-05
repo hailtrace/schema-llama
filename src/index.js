@@ -164,6 +164,9 @@ function primitiveHelper(value, schemaItem, options, key, schema) {
         if(!options.attemptCast && value.constructor !== Object) {
           throw error(value, schemaItem, key);
         }
+        if(value.constructor.name == '__SLC__') {
+          break;
+        }
         value = new (classFactory(schemaItem)(options))(value);
         break;
       }
@@ -196,14 +199,14 @@ const classFactory = function(schema) {
     if(ParentClass && ParentClass.constructor !== Function) throw new TypeError('The ParentClass you provide must be a class.');
 
     const Class = ParentClass ? (
-      class extends ParentClass {
+      class __SLC__ extends ParentClass {
         constructor(...args) {
           super(...args);
           constructorHelper.call(this, ...args);
         }
       }
     ) : (
-      class {
+      class __SLC__ {
         constructor(...args) {
           constructorHelper.call(this, ...args);
         }
